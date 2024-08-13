@@ -1,18 +1,15 @@
-use lazy_static::lazy_static;
 use crate::token::tokentype::TokenType;
+use lazy_static::lazy_static;
 
 #[derive(Debug, Clone)]
 pub struct Symbol {
     pub name: &'static str,
-    pub ty: TokenType
+    pub ty: TokenType,
 }
 
 impl Symbol {
     fn new(name: &'static str, ty: TokenType) -> Self {
-        Symbol {
-            name,
-            ty
-        }
+        Symbol { name, ty }
     }
 }
 

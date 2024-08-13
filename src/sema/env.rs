@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::token::ctypes::Var;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Env {

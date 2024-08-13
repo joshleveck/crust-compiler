@@ -1,6 +1,5 @@
 use super::tokentype::TokenType;
 
-
 #[derive(Debug, Clone)]
 pub struct Type {
     pub ty: Ctype,
@@ -53,7 +52,13 @@ impl Var {
         Var { ty, name, scope }
     }
 
-    pub fn new_global(ty: Box<Type>, name: String, data: String, size: usize, is_extern: bool) -> Self {
+    pub fn new_global(
+        ty: Box<Type>,
+        name: String,
+        data: String,
+        size: usize,
+        is_extern: bool,
+    ) -> Self {
         Var {
             ty,
             name: name.clone(),
@@ -61,9 +66,6 @@ impl Var {
         }
     }
 }
-
-
-
 
 #[derive(Debug, Clone)]
 pub enum NodeType {

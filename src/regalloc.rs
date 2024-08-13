@@ -1,10 +1,9 @@
-use crate::gen_ir::{Function, IROp, IRType, IR};
 use crate::dump_ir::IRInfo;
+use crate::gen_ir::{Function, IROp, IRType, IR};
 use crate::REGS_N;
 
 use lazy_static::lazy_static;
 use std::sync::Mutex;
-
 
 lazy_static! {
     static ref USED: Mutex<[bool; REGS_N]> = Mutex::new([false; REGS_N]);

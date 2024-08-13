@@ -1,8 +1,10 @@
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 
-use crate::token::{ctypes::{Ctype, Node, NodeType, Type,  Scope}, tokentype::TokenType};
-
+use crate::token::{
+    ctypes::{Ctype, Node, NodeType, Scope, Type},
+    tokentype::TokenType,
+};
 
 lazy_static! {
     static ref NUM_REGS: Mutex<usize> = Mutex::new(0);
@@ -146,7 +148,6 @@ fn store(ty: &Type, dst: Option<usize>, src: Option<usize>) {
 fn store_arg(ty: &Type, bpoff: Option<usize>, argreg: Option<usize>) {
     add(IROp::StoreArg(ty.size as u8), bpoff, argreg);
 }
-
 
 fn gen_lval(node: Box<Node>) -> Option<usize> {
     match node.op {

@@ -1,9 +1,9 @@
 use core::fmt;
 use std::collections::HashMap;
 
+pub mod ctypes;
 pub mod symbol;
 pub mod tokentype;
-pub mod ctypes;
 
 use crate::preprocess;
 use symbol::SYMBOLS;
@@ -81,12 +81,17 @@ impl Token {
     }
 
     pub fn get_line_number(&self) -> usize {
-        self.buf[..self.end].chars().collect::<Vec<char>>().iter().filter(|c| *c == &'\n').count()
+        self.buf[..self.end]
+            .chars()
+            .collect::<Vec<char>>()
+            .iter()
+            .filter(|c| *c == &'\n')
+            .count()
     }
 
     pub fn is_ident(&self, s: &str) -> bool {
         match self.ty {
-            TokenType::Ident(ref x) => x == s, 
+            TokenType::Ident(ref x) => x == s,
             _ => false,
         }
     }
@@ -142,7 +147,7 @@ impl Tokenizer {
                 CharType::Digit
             } else {
                 CharType::NonAlpha(*c)
-            } 
+            }
         })
     }
 
@@ -294,7 +299,7 @@ impl Tokenizer {
         } else {
             TokenType::Ident(name)
         };
-    
+
         self.eat_token(ty, len);
     }
 
@@ -365,7 +370,6 @@ impl Tokenizer {
                     v.push(new_token);
                     continue;
                 }
-
             }
             last = Some(t.clone());
             v.push(t);
@@ -408,7 +412,7 @@ fn keyword_map() -> HashMap<String, TokenType> {
     map
 }
 
-pub fn tokenize(filename: String, data: String,  ctx: &mut preprocess::Preprocessor) -> Vec<Token> {
+pub fn tokenize(filename: String, data: String, ctx: &mut preprocess::Preprocessor) -> Vec<Token> {
     let mut tokenizer = Tokenizer::new(filename, data);
     tokenizer.canonicalize_newline();
     tokenizer.remove_backslash_newline();

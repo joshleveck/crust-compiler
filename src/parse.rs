@@ -1,11 +1,14 @@
-use crate::token::{ctypes::{Ctype, Type, Scope}, tokentype::TokenType, Token};
+use crate::token::{
+    ctypes::{Ctype, Scope, Type},
+    tokentype::TokenType,
+    Token,
+};
 use crate::util::roundup;
 
 mod env;
 
-
-use env::Env;
 use crate::token::ctypes::{Node, NodeType};
+use env::Env;
 
 macro_rules! new_expr(
     ($i:path, $expr:expr) => (
@@ -18,15 +21,13 @@ pub fn parse(tokens: &Vec<Token>) -> Vec<Node> {
 
     let mut v = vec![];
     while tokens.len() != parser.pos {
-        if let Some(node)  = parser.toplevel() {
+        if let Some(node) = parser.toplevel() {
             v.push(node);
         }
     }
 
     v
 }
-
-
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -47,7 +48,7 @@ impl Parser {
         let mut next = &Some(Box::new(self.env.clone()));
 
         loop {
-            if let Some( e) = next {
+            if let Some(e) = next {
                 let ty = e.typedefs.get(name);
                 if ty.is_some() {
                     return ty.cloned();
@@ -58,14 +59,13 @@ impl Parser {
                 return None;
             }
         }
-
     }
 
     fn find_typedef(&self, name: &str) -> Option<Type> {
         let mut next = &Some(Box::new(self.env.clone()));
 
         loop {
-            if let Some( e) = next {
+            if let Some(e) = next {
                 let ty = e.typedefs.get(name);
                 if ty.is_some() {
                     return ty.cloned();
@@ -77,7 +77,6 @@ impl Parser {
             }
         }
     }
-
 
     fn expect(&mut self, ty: TokenType) {
         if self.tokens[self.pos].ty != ty {
@@ -181,12 +180,11 @@ impl Parser {
             }
             _ => t.bad_token("typename expected"),
         }
-
     }
 
     fn ident(&mut self) -> String {
         let t = &self.tokens[self.pos];
-        
+
         if let TokenType::Ident(ref s) = t.ty {
             self.pos += 1;
             s.clone()
@@ -203,7 +201,7 @@ impl Parser {
             TokenType::Num(val) => Node::new_num(val),
             TokenType::Str(ref str, len) => {
                 let mut node = Node::new(NodeType::Str(str.clone(), len));
-                node.ty =Box::new( Type::ary_of(Box::new(Type::char_ty()), len));
+                node.ty = Box::new(Type::ary_of(Box::new(Type::char_ty()), len));
                 node
             }
             TokenType::Ident(ref name) => {
@@ -228,7 +226,7 @@ impl Parser {
                     let stmt = Box::new(self.compound_stmt());
                     self.expect(TokenType::RightBrace);
                     Node::new(NodeType::StmtExpr(stmt))
-                }else {
+                } else {
                     let node = self.assign();
                     self.expect(TokenType::RightParen);
                     node
@@ -240,7 +238,6 @@ impl Parser {
 
     fn postfix(&mut self) -> Node {
         let mut lhs = self.primary();
-
 
         loop {
             if self.consume(TokenType::Inc) {
@@ -779,4 +776,3 @@ impl Parser {
         Some(node)
     }
 }
-

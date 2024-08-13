@@ -1,6 +1,5 @@
-use crate::token::{tokenize, Token, tokentype::TokenType};
+use crate::token::{tokenize, tokentype::TokenType, Token};
 use crate::util::read_file;
-
 
 use std::collections::HashMap;
 use std::mem;

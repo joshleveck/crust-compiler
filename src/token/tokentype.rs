@@ -70,7 +70,6 @@ pub enum TokenType {
     NewLine,
 }
 
-
 impl TokenType {
     pub fn new_single_letter(c: char) -> Option<Self> {
         use self::TokenType::*;

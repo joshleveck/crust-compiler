@@ -1,6 +1,9 @@
 use crate::gen_ir::{Function, IROp, IR};
 use crate::util::roundup;
-use crate::{token::ctypes::{Scope, Var}, REGS_N};
+use crate::{
+    token::ctypes::{Scope, Var},
+    REGS_N,
+};
 
 use lazy_static::lazy_static;
 
