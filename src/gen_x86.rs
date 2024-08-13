@@ -22,10 +22,7 @@ fn backslash_escape(s: String, len: usize) -> String {
     let mut sb = String::new();
     for i in 0..len {
         if let Some(c) = s.chars().collect::<Vec<char>>().get(i) {
-            // Issue: https://github.com/rust-lang/rfcs/issues/751
             let escaped = match c {
-                // '\b' => Some('b'),
-                // '\f' => Some('f'),
                 '\n' => Some('n'),
                 '\r' => Some('r'),
                 '\t' => Some('t'),
