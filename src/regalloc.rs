@@ -1,15 +1,14 @@
-use crate::ir::{get_irinfo, IROp, IRType, Ir};
+use crate::gen_ir::{Function, IROp, IRType, IR};
+use crate::dump_ir::IRInfo;
 use crate::REGS_N;
 
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 
-// Need reserving initialized memory area in order to use set_len().
-const INIT_ARRAY_SIZE: usize = 10;
 
 lazy_static! {
     static ref USED: Mutex<[bool; REGS_N]> = Mutex::new([false; REGS_N]);
-    static ref REG_MAP: Mutex<Vec<Option<usize>>> = Mutex::new(vec![None; INIT_ARRAY_SIZE]);
+    static ref REG_MAP: Mutex<[Option<usize>; 8192]> = Mutex::new([None; 8192]);
 }
 
 fn used_get(i: usize) -> bool {
@@ -29,6 +28,10 @@ fn reg_map_set(i: usize, val: usize) {
 }
 
 fn alloc(ir_reg: usize) -> usize {
+    if REG_MAP.lock().unwrap().len() <= ir_reg {
+        panic!("program too big");
+    }
+
     if let Some(r) = reg_map_get(ir_reg) {
         assert!(used_get(r));
         return r;
@@ -38,45 +41,56 @@ fn alloc(ir_reg: usize) -> usize {
         if used_get(i) {
             continue;
         }
-        used_set(i, true);
         reg_map_set(ir_reg, i);
+        used_set(i, true);
         return i;
     }
-    panic!("register exhauseted");
+    panic!("register exhauseted: {}", ir_reg);
 }
 
-fn kill(r: usize) {
-    assert!(used_get(r));
-    used_set(r, false);
-}
-
-pub fn alloc_regs(irv: &mut Vec<Ir>) {
+fn visit(irv: &mut Vec<IR>) {
     use self::IRType::*;
-    let irv_len = irv.len();
 
-    if irv_len > INIT_ARRAY_SIZE {
-        unsafe {
-            REG_MAP.lock().unwrap().set_len(irv_len);
-        }
-    }
-
-    for i in 0..irv_len {
-        let mut ir = irv[i].clone();
-        let info = get_irinfo(&ir);
+    for item in irv {
+        let mut ir = item.clone();
+        let info = &IRInfo::from(&ir.op);
 
         match info.ty {
-            Reg | RegImm | RegLabel => ir.lhs = Some(alloc(ir.lhs.unwrap())),
-            RegReg => {
+            Reg | RegImm | RegLabel | LabelAddr => ir.lhs = Some(alloc(ir.lhs.unwrap())),
+            Mem | RegReg => {
                 ir.lhs = Some(alloc(ir.lhs.unwrap()));
                 ir.rhs = Some(alloc(ir.rhs.unwrap()));
+            }
+            Call => {
+                ir.lhs = Some(alloc(ir.lhs.unwrap()));
+                match ir.op {
+                    IROp::Call(name, nargs, args) => {
+                        let mut args_new: [usize; 6] = [0; 6];
+                        for i in 0..nargs {
+                            args_new[i] = alloc(args[i]);
+                        }
+                        ir.op = IROp::Call(name, nargs, args_new);
+                    }
+                    _ => unreachable!(),
+                }
             }
             _ => (),
         }
 
         if ir.op == IROp::Kill {
-            kill(ir.lhs.unwrap());
+            let lhs = ir.lhs.unwrap();
+            assert!(used_get(lhs));
+            used_set(lhs, false);
             ir.op = IROp::Nop;
         }
-        irv[i] = ir;
+        *item = ir;
+    }
+}
+
+pub fn alloc_regs(fns: &mut Vec<Function>) {
+    for f in fns {
+        *USED.lock().unwrap() = [false; REGS_N];
+
+        visit(&mut f.ir);
     }
 }

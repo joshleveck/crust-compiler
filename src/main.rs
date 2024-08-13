@@ -1,47 +1,57 @@
 use clap::Parser as ClapParser;
-use codegen::gen_x86;
 
-mod codegen;
-mod ir;
+
+mod gen_x86;
+mod gen_ir;
 mod parse;
 mod regalloc;
 mod token;
+mod sema;
+mod util;
+mod preprocess;
+mod dump_ir;
 
-const REGS_N: usize = 8;
-const REGS: [&str; REGS_N] = ["rdi", "rsi", "r10", "r11", "r12", "r13", "r14", "r15"];
+const REGS_N: usize = 7;
 
 #[derive(ClapParser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
     #[arg(short, long)]
-    input: String,
+    path: String,
 
     #[arg(long)]
-    dump1: bool,
+    dump_ir1: bool,
     #[arg(long)]
-    dump2: bool,
+    dump_ir2: bool,
 }
 
 fn main() {
-    let args = Args::parse();
+    // let args = Args::parse();
+    let args = Args {
+        path: "test.c".to_string(),
+        dump_ir1: false,
+        dump_ir2: false,
 
-    let tokens = token::tokenize(args.input);
-    let node = parse::Parser::new(tokens).parse();
+    };
 
-    let mut irv = ir::gen_ir(node);
+    let input_string = util::read_file(&args.path);
+    let tokens = token::tokenize(args.path, input_string, &mut preprocess::Preprocessor::new());
 
-    if args.dump1 {
-        ir::dump_ir(&irv);
+
+
+    let nodes = parse::parse(&tokens);
+    let (nodes, globals) = sema::sema(nodes);
+    let mut fns = gen_ir::gen_ir(nodes);
+
+    if args.dump_ir1 {
+        dump_ir::dump_ir(&fns);
     }
 
-    regalloc::alloc_regs(&mut irv);
+    regalloc::alloc_regs(&mut fns);
 
-    if args.dump2 {
-        ir::dump_ir(&irv);
+    if args.dump_ir1 {
+        dump_ir::dump_ir(&fns);
     }
 
-    println!(".intel_syntax noprefix");
-    println!(".global main");
-    println!("main:");
-    gen_x86(irv)
+    gen_x86::gen_x86(globals, fns);
 }
