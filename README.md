@@ -1,1 +1,2 @@
-# Toy C Compiler 
+# Simple C Compiler
+Welcome to the Simple C Compiler! This project is a minimalistic C compiler written in Rust. It is designed to take C code as input, parse it, translate it into an intermediate representation (IR), and generate x86 assembly instructions to produce a runnable executable.
